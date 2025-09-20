@@ -5,10 +5,11 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from tasks_progress import update_task_progress, finish_task, fail_task
+
 load_dotenv()
 
 # --- OpenAI setup ---
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # <-- Replace with your API key
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # --- AI call helper ---
 async def ai_json_call(messages, model="gpt-4o-mini"):
@@ -25,9 +26,15 @@ async def ai_json_call(messages, model="gpt-4o-mini"):
 
 # --- Process single ISO rule ---
 async def process_rule(rule_text, json_data, rule_index, total_rules, task_id):
-    # Update progress before starting this rule
-    progress = int((rule_index / total_rules) * 100)
-    update_task_progress(task_id, progress, rule_text.split(':')[1].strip() if ':' in rule_text else rule_text[:50], f"Processing rule {rule_index + 1} of {total_rules}")
+    # Update progress every 5 rules or 5% progress
+    if rule_index % 5 == 0 or rule_index == total_rules - 1:
+        progress = int((rule_index / total_rules) * 100)
+        update_task_progress(
+            task_id, 
+            progress, 
+            rule_text.split(':')[1].strip() if ':' in rule_text else rule_text[:50], 
+            f"Processing rule {rule_index + 1} of {total_rules}"
+        )
     
     # Step 1: Relevance + keyword extraction
     messages = [

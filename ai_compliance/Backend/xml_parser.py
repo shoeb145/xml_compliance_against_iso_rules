@@ -82,13 +82,28 @@ def group_sections(entries):
 
     return groups
 
-# --- Main parsing function ---
+# --- Parse from file path ---
 def parse_xml(file_path: Path):
     tree = ET.parse(file_path)
     root = tree.getroot()
     entries = parse_element(root)
     grouped = group_sections(entries)
 
+    # Print counts
+    total_entries = 0
+    print("Parsed XML entries by group:")
+    for key, val in grouped.items():
+        print(f"{key}: {len(val)} entries")
+        total_entries += len(val)
+    print(f"Total entries parsed: {total_entries}")
+
+    return grouped
+
+# --- Parse from string content ---
+def parse_xml_from_string(xml_content: str):
+    root = ET.fromstring(xml_content)
+    entries = parse_element(root)
+    grouped = group_sections(entries)
 
     # Print counts
     total_entries = 0
@@ -101,7 +116,7 @@ def parse_xml(file_path: Path):
     return grouped
 
 # --- Test script ---
-if __name__ == "__main__":
-    INPUT_XML = Path(r"C:\Users\shren\Downloads\proj_\paloalto-config.xml")
-    OUTPUT_JSON = Path(r"C:\Users\shren\Downloads\proj_\outpot.json")
-    grouped_data = parse_xml(INPUT_XML, OUTPUT_JSON)
+# if __name__ == "__main__":
+#     INPUT_XML = Path(r"C:\Macsofy\xml_compliance_against_iso_rules\ai_compliance\Backend\Firewall_configuration.xml")
+#     OUTPUT_JSON = Path(r"C:\Users\shren\Downloads\proj_\47365738465hfbvdfv.json")
+#     grouped_data = parse_xml(INPUT_XML)

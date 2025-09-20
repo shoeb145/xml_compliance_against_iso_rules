@@ -1,9 +1,16 @@
+// src/App.jsx
 import { useState, useEffect } from "react";
 import axios from "axios";
+import Header from "./components/Header/Header";
+import FileUpload from "./components/FileUpload/FileUpload";
+import ProcessingStatus from "./components/ProcessingStatus/ProcessingStatus";
+import Results from "./components/Results/Results";
+import Error from "./components/Error/Error";
 import "./App.css";
 
 function App() {
   const [file, setFile] = useState(null);
+  const [fileName, setFileName] = useState("");
   const [taskId, setTaskId] = useState(null);
   const [status, setStatus] = useState("idle");
   const [progress, setProgress] = useState(0);
@@ -15,8 +22,25 @@ function App() {
   const API_BASE = "http://localhost:5000/api";
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    setFileName(selectedFile ? selectedFile.name : "");
     setError("");
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile && droppedFile.name.endsWith(".xml")) {
+      setFile(droppedFile);
+      setFileName(droppedFile.name);
+    } else {
+      setError("Please upload an XML file");
+    }
   };
 
   const uploadFile = async () => {
@@ -36,7 +60,7 @@ function App() {
       setTaskId(response.data.task_id);
       setStatus("processing");
       setProgress(0);
-      setMessage("Starting analysis...");
+      setMessage("Initializing analysis...");
     } catch (err) {
       setError("Upload failed: " + (err.response?.data?.error || err.message));
       setStatus("idle");
@@ -68,7 +92,7 @@ function App() {
         } catch (err) {
           console.error("Status check failed:", err);
         }
-      }, 1000); // Poll every second for smooth progress updates
+      }, 1000);
     }
 
     return () => {
@@ -78,6 +102,7 @@ function App() {
 
   const reset = () => {
     setFile(null);
+    setFileName("");
     setTaskId(null);
     setStatus("idle");
     setProgress(0);
@@ -89,192 +114,42 @@ function App() {
 
   return (
     <div className="app">
-      <h1>Firewall Compliance Checker</h1>
-      <p>Upload your Palo Alto XML configuration to check ISO compliance</p>
+      <Header />
 
-      {status === "idle" && (
-        <div className="upload-section">
-          <div className="file-input">
-            <label>Select XML File:</label>
-            <input type="file" accept=".xml" onChange={handleFileChange} />
+      <main className="app-content">
+        {status === "idle" && (
+          <FileUpload
+            file={file}
+            fileName={fileName}
+            error={error}
+            onFileChange={handleFileChange}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            onUpload={uploadFile}
+          />
+        )}
+
+        {status === "uploading" && (
+          <div className="status fade-in">
+            <div className="processing-spinner"></div>
+            <p>Uploading configuration file...</p>
           </div>
-          <button onClick={uploadFile} disabled={!file} className="upload-btn">
-            Upload and Analyze
-          </button>
-          {error && <div className="error-message">{error}</div>}
-        </div>
-      )}
+        )}
 
-      {status === "uploading" && (
-        <div className="status">Uploading file...</div>
-      )}
+        {status === "processing" && (
+          <ProcessingStatus
+            progress={progress}
+            currentRule={currentRule}
+            message={message}
+          />
+        )}
 
-      {status === "processing" && (
-        <div className="processing">
-          <h2>Analyzing Configuration</h2>
-          <div className="progress-container">
-            <div className="progress-bar">
-              <div
-                className="progress-fill"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-            <div className="progress-text">{progress}% complete</div>
-            {currentRule && (
-              <div className="current-rule">Checking: {currentRule}</div>
-            )}
-            <div className="processing-message">{message}</div>
-          </div>
-        </div>
-      )}
+        {status === "completed" && results && (
+          <Results results={results} onReset={reset} />
+        )}
 
-      {status === "completed" && results && (
-        <div className="results">
-          <h2>Compliance Results</h2>
-
-          <div className="summary">
-            <h3>Summary</h3>
-            <div className="summary-grid">
-              <div className="summary-item">
-                <span className="label">Time taken:</span>
-                <span className="value">
-                  {results.summary.time_taken_sec} seconds
-                </span>
-              </div>
-              <div className="summary-item">
-                <span className="label">Total rules checked:</span>
-                <span className="value">{results.summary.total_rules}</span>
-              </div>
-              <div className="summary-item compliant">
-                <span className="label">Compliant:</span>
-                <span className="value">{results.summary.compliant_rules}</span>
-              </div>
-              <div className="summary-item non-compliant">
-                <span className="label">Non-compliant:</span>
-                <span className="value">
-                  {results.summary.non_compliant_rules}
-                </span>
-              </div>
-              <div className="summary-item score">
-                <span className="label">Compliance Score:</span>
-                <span className="value">
-                  {results.summary.compliance_score}%
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="results-tables">
-            <div className="compliant-table">
-              <h3>✅ Compliant Rules ({results.results.compliant.length})</h3>
-              {results.results.compliant.length > 0 ? (
-                <div className="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Control ID</th>
-                        <th>Control Name</th>
-                        <th>Reasoning</th>
-                        <th>Evidence</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {results.results.compliant.map((rule, index) => (
-                        <tr key={index}>
-                          <td>{rule.control_id}</td>
-                          <td>{rule.control_name}</td>
-                          <td className="reasoning-cell">{rule.reasoning}</td>
-                          <td>
-                            {rule.evidence && rule.evidence.length > 0 ? (
-                              <div className="evidence">
-                                {rule.evidence.map((evidence, idx) => (
-                                  <div key={idx} className="evidence-item">
-                                    <div>
-                                      <strong>Path:</strong> {evidence.path}
-                                    </div>
-                                    <div>
-                                      <strong>Value:</strong> {evidence.value}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              "No evidence"
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p>No compliant rules found.</p>
-              )}
-            </div>
-
-            <div className="non-compliant-table">
-              <h3>
-                ❌ Non-Compliant Rules ({results.results.non_compliant.length})
-              </h3>
-              {results.results.non_compliant.length > 0 ? (
-                <div className="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Control ID</th>
-                        <th>Control Name</th>
-                        <th>Reasoning</th>
-                        <th>Evidence</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {results.results.non_compliant.map((rule, index) => (
-                        <tr key={index}>
-                          <td>{rule.control_id}</td>
-                          <td>{rule.control_name}</td>
-                          <td className="reasoning-cell">{rule.reasoning}</td>
-                          <td>
-                            {rule.evidence && rule.evidence.length > 0 ? (
-                              <div className="evidence">
-                                {rule.evidence.map((evidence, idx) => (
-                                  <div key={idx} className="evidence-item">
-                                    <div>
-                                      <strong>Path:</strong> {evidence.path}
-                                    </div>
-                                    <div>
-                                      <strong>Value:</strong> {evidence.value}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              "No evidence"
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p>No non-compliant rules found.</p>
-              )}
-            </div>
-          </div>
-
-          <button onClick={reset} className="reset-button">
-            Analyze Another File
-          </button>
-        </div>
-      )}
-
-      {status === "error" && (
-        <div className="error">
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={reset}>Try Again</button>
-        </div>
-      )}
+        {status === "error" && <Error error={error} onReset={reset} />}
+      </main>
     </div>
   );
 }

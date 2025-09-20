@@ -1,27 +1,23 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import os
 import uuid
 import json
 from pathlib import Path
-from xml_parser import parse_xml
+from xml_parser import parse_xml_from_string
 from iso_loader import load_iso_controls
 from compliance import run_compliance
-import asyncio
+from tasks_progress import create_task, update_task_progress, finish_task, fail_task, get_task_status
 from threading import Thread
-from tasks_progress import create_task, get_task_status
-
+import asyncio
+import time
 
 app = Flask(__name__)
 CORS(app)
 
 # Configuration
-UPLOAD_FOLDER = 'uploads'
-RESULTS_FOLDER = 'results'
 CSV_FILE = 'iso_controls.csv'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(RESULTS_FOLDER, exist_ok=True)
 
+# In-memory task storage (using tasks_progress module)
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -37,41 +33,80 @@ def upload_file():
     # Generate unique task ID
     task_id = str(uuid.uuid4())
     
-    # Save uploaded file
-    xml_path = os.path.join(UPLOAD_FOLDER, f"{task_id}.xml")
-    file.save(xml_path)
-    
-    # Create task in progress tracker
-    create_task(task_id)
-    
-    # Start processing in background thread
-    thread = Thread(target=process_xml_background, args=(task_id, xml_path))
-    thread.daemon = True
-    thread.start()
-    
-    return jsonify({'task_id': task_id})
-
-def process_xml_background(task_id, xml_path):
     try:
-        # Parse XML
-        parsed_data = parse_xml(Path(xml_path))
+        # Read file content directly to memory (no disk I/O)
+        xml_content = file.read().decode('utf-8')
+        
+        # Create task in progress tracker
+        create_task(task_id)
+        
+        # Start processing in background thread
+        thread = Thread(target=run_async_compliance, args=(task_id, xml_content))
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({'task_id': task_id})
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to read file: {str(e)}'}), 500
+
+def run_async_compliance(task_id, xml_content):
+    """Run the async compliance check in a separate thread"""
+    try:
+        # Create a new event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        # Run the async function
+        result = loop.run_until_complete(process_xml_background(task_id, xml_content))
+        return result
+    except Exception as e:
+        print(f"Error in run_async_compliance: {e}")
+        fail_task(task_id, str(e))
+    finally:
+        loop.close()
+
+async def process_xml_background(task_id, xml_content):
+    try:
+        print(f"Starting processing for task {task_id}")
+        
+        # Update status
+        update_task_progress(task_id, 10, 'Parsing XML configuration')
+        
+        # Parse XML directly from string (no file I/O)
+        parsed_data = parse_xml_from_string(xml_content)
+        total_entries = sum(len(v) for v in parsed_data.values())
+        print(f"Parsed XML with {total_entries} entries across {len(parsed_data)} groups")
+        
+        # Update status
+        update_task_progress(task_id, 30, 'Loading ISO controls')
         
         # Load ISO controls
         csv_path = Path(CSV_FILE)
         iso_controls = load_iso_controls(csv_path)
+        print(f"Loaded {len(iso_controls)} ISO controls")
         
         # Convert parsed data to list for compliance checking
         json_data = []
         for group_name, entries in parsed_data.items():
             json_data.extend(entries)
         
-        # Run compliance check
-        asyncio.run(run_compliance(iso_controls, json_data, task_id))
+        # Update status
+        update_task_progress(task_id, 50, 'Running compliance checks with AI')
+        print(f"Starting compliance analysis with {len(json_data)} configuration items")
+        
+        # Run compliance check (async version)
+        result = await run_compliance(iso_controls, json_data, task_id)
+        
+        # Update task with result (no file I/O)
+        finish_task(task_id, result)
+        print(f"Completed processing for task {task_id}")
+        
+        return result
         
     except Exception as e:
-        from tasks_progress import fail_task
+        print(f"Error in process_xml_background: {e}")
         fail_task(task_id, str(e))
-        print(f"Error processing task {task_id}: {e}")
 
 @app.route('/api/task/<task_id>', methods=['GET'])
 def get_task_status_route(task_id):
@@ -95,6 +130,6 @@ def get_results(task_id):
     return jsonify(task_status.get('result', {}))
 
 if __name__ == '__main__':
-    print("🔥 Compliance Checker Backend Started")
+    print("🔥 Optimized Async Compliance Checker Backend Started")
     print("📊 Ready to process XML files for ISO compliance")
     app.run(debug=True, port=5000, threaded=True)
