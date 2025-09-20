@@ -24,9 +24,9 @@ const FileUpload = ({
           >
             <path
               d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z"
-              fill="#2563eb"
+              fill="#3b82f6"
             />
-            <path d="M14 2V8H20" fill="#1e40af" />
+            <path d="M14 2V8H20" fill="#2563eb" />
             <path
               d="M16 13H8V11H16V13ZM16 17H8V15H16V17ZM13 9H8V7H13V9Z"
               fill="white"
