@@ -1,19 +1,20 @@
 /* src/components/Results/Tables.css */
 .compliant-table,
 .non-compliant-table {
-  background: var(--light);
+  background: rgba(15, 23, 42, 0.6);
   padding: 1.5rem;
   border-radius: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-light);
   overflow: hidden;
+  backdrop-filter: blur(10px);
 }
 
 .compliant-table {
-  border-top: 3px solid var(--success);
+  border-top: 3px solid var(--primary-green);
 }
 
 .non-compliant-table {
-  border-top: 3px solid var(--danger);
+  border-top: 3px solid #ef4444;
 }
 
 .compliant-table h3,
@@ -22,19 +23,21 @@
   font-weight: 600;
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: var(--text-white);
 }
 
 .table-container {
   overflow-x: auto;
   border-radius: 8px;
-  background: var(--background);
-  box-shadow: var(--shadow);
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   max-height: 600px;
   overflow-y: auto;
+  border: 1px solid var(--border-light);
 }
 
 table {
@@ -45,7 +48,7 @@ table {
 }
 
 th {
-  background: var(--primary);
+  background: var(--border-light);
   color: white;
   padding: 1rem;
   text-align: left;
@@ -66,13 +69,14 @@ th:last-child {
 
 td {
   padding: 1rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-light);
   vertical-align: top;
   font-size: 0.9rem;
+  color: var(--text-light);
 }
 
 tr:hover td {
-  background: var(--primary-light);
+  background: rgba(59, 130, 246, 0.1);
 }
 
 tr:last-child td {
@@ -82,6 +86,7 @@ tr:last-child td {
 td:nth-child(1) {
   width: 120px;
   font-weight: 600;
+  color: var(--text-white);
 }
 
 td:nth-child(2) {
@@ -100,7 +105,6 @@ td:nth-child(4) {
 
 .reasoning-cell {
   line-height: 1.5;
-  color: var(--dark);
 }
 
 .evidence {
@@ -108,11 +112,11 @@ td:nth-child(4) {
 }
 
 .evidence-item {
-  background: var(--light);
+  background: rgba(59, 130, 246, 0.1);
   padding: 0.75rem;
   border-radius: 6px;
   margin-bottom: 0.5rem;
-  border-left: 3px solid var(--primary);
+  border-left: 3px solid var(--primary-blue);
   font-size: 0.8rem;
 }
 
@@ -126,14 +130,14 @@ td:nth-child(4) {
 }
 
 .evidence-item strong {
-  color: var(--primary);
+  color: var(--primary-blue);
   font-weight: 600;
 }
 
 .no-results {
   text-align: center;
   padding: 2rem;
-  color: var(--gray);
+  color: var(--text-gray);
   font-style: italic;
 }
 
@@ -143,18 +147,18 @@ td:nth-child(4) {
 }
 
 .table-container::-webkit-scrollbar-track {
-  background: var(--light);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
 .table-container::-webkit-scrollbar-thumb {
-  background: var(--primary);
+  background: var(--border-light);
   border-radius: 4px;
 }
 
-.table-container::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-dark);
-}
+/* .table-container::-webkit-scrollbar-thumb:hover {
+  background: #91b0f4;
+} */
 
 @media (max-width: 768px) {
   .compliant-table,

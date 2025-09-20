@@ -114,6 +114,12 @@ function App() {
 
   return (
     <div className="app">
+      {/* Background Orbs */}
+      <div className="orb orb-1"></div>
+      <div className="orb orb-2"></div>
+      <div className="orb orb-3"></div>
+      <div className="orb orb-4"></div>
+
       <Header />
 
       <main className="app-content">

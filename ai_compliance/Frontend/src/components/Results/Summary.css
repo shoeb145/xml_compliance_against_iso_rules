@@ -1,46 +1,47 @@
 /* src/components/Results/Summary.css */
 .summary {
-  background: var(--light);
+  background: rgba(15, 23, 42, 0.6);
   padding: 2rem;
   border-radius: 12px;
   margin-bottom: 3rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-light);
+  backdrop-filter: blur(10px);
 }
 
 .summary h3 {
   font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
-  color: var(--dark);
+  color: var(--text-white);
   text-align: center;
 }
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
   margin-bottom: 1rem;
 }
 
 .summary-item {
-  background: var(--background);
+  background: rgba(15, 23, 42, 0.8);
   padding: 1.5rem;
   border-radius: 12px;
   text-align: center;
-  box-shadow: var(--shadow);
-  border-top: 3px solid var(--primary);
+  border-top: 3px solid var(--primary-blue);
+  border: 1px solid var(--border-light);
 }
 
 .summary-item.compliant {
-  border-top-color: var(--success);
+  border-top-color: var(--primary-green);
 }
 
 .summary-item.non-compliant {
-  border-top-color: var(--danger);
+  border-top-color: #ef4444;
 }
 
 .summary-item.score {
-  border-top-color: var(--accent);
+  border-top-color: var(--primary-blue);
   grid-column: 1 / -1;
   max-width: 250px;
   margin: 0 auto;
@@ -49,7 +50,7 @@
 .summary-item .label {
   display: block;
   font-weight: 500;
-  color: var(--gray);
+  color: var(--text-gray);
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
   text-transform: uppercase;
@@ -59,12 +60,12 @@
 .summary-item .value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--dark);
+  color: var(--text-white);
 }
 
 .summary-item.score .value {
   font-size: 2rem;
-  color: var(--accent);
+  color: var(--primary-blue);
 }
 
 @media (max-width: 768px) {
