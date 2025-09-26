@@ -7,6 +7,7 @@ import ProcessingStatus from "./components/ProcessingStatus/ProcessingStatus";
 import Results from "./components/Results/Results";
 import Error from "./components/Error/Error";
 import "./App.css";
+import NavBar from "./components/NavBar/NavBar";
 
 function App() {
   const [file, setFile] = useState(null);
@@ -119,6 +120,8 @@ function App() {
       <div className="orb orb-2"></div>
       <div className="orb orb-3"></div>
       <div className="orb orb-4"></div>
+
+      <NavBar />
 
       <Header />
 

@@ -3,9 +3,36 @@ import React from "react";
 import "./Tables.css";
 
 const CompliantTable = ({ compliantRules }) => {
+  const headers = [
+    { label: "Control ID", key: "control_id" },
+    { label: "Control Name", key: "control_name" },
+    { label: "Description", key: "control_description" },
+    { label: "Reasoning", key: "reasoning" },
+    { label: "Status", key: "status" },
+  ];
+
   return (
     <div className="compliant-table">
-      <h3>✅ Compliant Controls ({compliantRules.length})</h3>
+      <h3>
+        ✅ Compliant Controls ({compliantRules.length}){" "}
+        <svg
+          title="Stack Overflow"
+          data-slot="icon"
+          fill="none"
+          stroke-width="1.5"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
+          ></path>
+        </svg>
+      </h3>
+
       {compliantRules.length > 0 ? (
         <div className="table-container">
           <table>
