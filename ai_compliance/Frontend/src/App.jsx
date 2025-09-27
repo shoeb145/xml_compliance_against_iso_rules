@@ -59,7 +59,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        "http://<backend-ip-or-domain>:5000/api/upload",
+        "https://jellyfish-app-omejz.ondigitalocean.app/api/upload",
         formData
       );
 
