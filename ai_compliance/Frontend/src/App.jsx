@@ -58,7 +58,11 @@ function App() {
     formData.append("file", file);
 
     try {
-      const response = await axios.post(`/api/upload`, formData);
+      const response = await axios.post(
+        "http://<backend-ip-or-domain>:5000/api/upload",
+        formData
+      );
+
       setTaskId(response.data.task_id);
       setStatus("processing");
       setProgress(0);
