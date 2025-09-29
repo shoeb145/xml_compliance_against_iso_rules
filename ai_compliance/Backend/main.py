@@ -131,7 +131,7 @@ def get_results(task_id):
     
     return jsonify(task_status.get('result', {}))
 
-
+# Serve React frontend
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_frontend(path):
@@ -143,11 +143,10 @@ def serve_frontend(path):
         return send_from_directory(app.static_folder, path)
     return send_from_directory(app.static_folder, "index.html")
 
-# --- Health check API ---
+# Health check API
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'healthy', 'service': 'xml-compliance-checker'})
-
 
 if __name__ == '__main__':
     print("🔥 Optimized Async Compliance Checker Backend Started")
