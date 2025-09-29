@@ -1,0 +1,14 @@
+# === Backend (Python) ===
+flask
+flask-cors
+python-dotenv
+openai
+
+# === Frontend (React via Vite) ===
+react
+react-dom
+vite
+axios
+Tailwind
+DaisyUI
+Recharts
