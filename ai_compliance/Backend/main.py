@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 import uuid
 import json
+import os
 from pathlib import Path
 from xml_parser import parse_xml_from_string
 from iso_loader import load_iso_controls
@@ -143,6 +144,10 @@ def serve_frontend(path):
     return send_from_directory(app.static_folder, "index.html")
 
 # Health check API
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'healthy', 'service': 'xml-compliance-checker'})
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'healthy', 'service': 'xml-compliance-checker'})
