@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+import os
 import uuid
 import json
 from pathlib import Path
@@ -11,7 +12,8 @@ from threading import Thread
 import asyncio
 import time
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="client/dist", static_url_path="/")
+
 CORS(app)
 
 # Configuration
@@ -128,6 +130,19 @@ def get_results(task_id):
         return jsonify({'error': 'Results not ready yet'}), 400
     
     return jsonify(task_status.get('result', {}))
+
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_frontend(path):
+    if path.startswith("api/"):
+        # let API routes handle themselves
+        return jsonify({'error': 'Not found'}), 404
+    full_path = os.path.join(app.static_folder, path)
+    if path != "" and os.path.exists(full_path):
+        return send_from_directory(app.static_folder, path)
+    return send_from_directory(app.static_folder, "index.html")
+
 
 if __name__ == '__main__':
     print("🔥 Optimized Async Compliance Checker Backend Started")
