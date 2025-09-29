@@ -20,7 +20,8 @@ function App() {
   const [results, setResults] = useState(null);
   const [error, setError] = useState("");
 
-  const API_BASE = "http://localhost:5000/api";
+  const API_BASE =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -57,7 +58,11 @@ function App() {
     formData.append("file", file);
 
     try {
-      const response = await axios.post(`${API_BASE}/upload`, formData);
+      const response = await axios.post(
+        "https://jellyfish-app-omejz.ondigitalocean.app/api/upload",
+        formData
+      );
+
       setTaskId(response.data.task_id);
       setStatus("processing");
       setProgress(0);
