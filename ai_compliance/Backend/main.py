@@ -2,8 +2,6 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
 import uuid
-import json
-import os
 from pathlib import Path
 from xml_parser import parse_xml_from_string
 from iso_loader import load_iso_controls
@@ -11,16 +9,25 @@ from compliance import run_compliance
 from tasks_progress import create_task, update_task_progress, finish_task, fail_task, get_task_status
 from threading import Thread
 import asyncio
-import time
 
-app = Flask(__name__, static_folder="client/dist", static_url_path="/")
+# Get the directory where main.py is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_FOLDER = os.path.join(BASE_DIR, 'client', 'dist')
+
+# Check if static folder exists
+if os.path.exists(STATIC_FOLDER):
+    print(f"✓ Found static folder at: {STATIC_FOLDER}")
+    app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path="/")
+else:
+    print(f"⚠ Static folder not found at: {STATIC_FOLDER}")
+    print("  Running in API-only mode")
+    app = Flask(__name__)
 
 CORS(app)
 
 # Configuration
 CSV_FILE = 'iso_controls.csv'
 
-# In-memory task storage (using tasks_progress module)
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -131,24 +138,50 @@ def get_results(task_id):
         return jsonify({'error': 'Results not ready yet'}), 400
     
     return jsonify(task_status.get('result', {}))
-# Serve React frontend
-@app.route("/", defaults={"path": ""})
-@app.route("/<path:path>")
-def serve_frontend(path):
-    if path.startswith("api/"):
-        # let API routes handle themselves
-        return jsonify({'error': 'Not found'}), 404
-    full_path = os.path.join(app.static_folder, path)
-    if path != "" and os.path.exists(full_path):
-        return send_from_directory(app.static_folder, path)
-    return send_from_directory(app.static_folder, "index.html")
-
-# Health check API
-
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'healthy', 'service': 'xml-compliance-checker'})
+
+# Serve React frontend - only if static folder exists
+if os.path.exists(STATIC_FOLDER):
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def serve_frontend(path):
+        # API routes should not be caught here
+        if path.startswith("api/"):
+            return jsonify({'error': 'Not found'}), 404
+        
+        # Check if file exists
+        full_path = os.path.join(STATIC_FOLDER, path)
+        if path != "" and os.path.exists(full_path) and os.path.isfile(full_path):
+            return send_from_directory(STATIC_FOLDER, path)
+        
+        # Fallback to index.html for SPA routing
+        index_path = os.path.join(STATIC_FOLDER, "index.html")
+        if os.path.exists(index_path):
+            return send_from_directory(STATIC_FOLDER, "index.html")
+        else:
+            return jsonify({
+                'error': 'Frontend not found',
+                'message': 'index.html is missing from client/dist'
+            }), 404
+else:
+    # API-only mode fallback
+    @app.route("/")
+    def api_info():
+        return jsonify({
+            'service': 'XML Compliance Checker API',
+            'status': 'running',
+            'mode': 'API only (frontend not deployed)',
+            'version': '1.0',
+            'endpoints': {
+                'health': '/api/health',
+                'upload': '/api/upload (POST)',
+                'task_status': '/api/task/<task_id> (GET)',
+                'results': '/api/results/<task_id> (GET)'
+            }
+        })
 
 if __name__ == '__main__':
     print("🔥 Optimized Async Compliance Checker Backend Started")
