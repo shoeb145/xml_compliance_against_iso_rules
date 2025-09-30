@@ -68,7 +68,7 @@ function App() {
       setStatus("idle");
     }
   };
-
+  console.log("API URL is", import.meta.env.VITE_API_BASE_URL);
   useEffect(() => {
     let intervalId = null;
 
