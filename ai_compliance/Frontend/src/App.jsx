@@ -58,10 +58,7 @@ function App() {
     formData.append("file", file);
 
     try {
-      const response = await axios.post(
-        "https://jellyfish-app-omejz.ondigitalocean.app/api/upload",
-        formData
-      );
+      const response = await axios.post(`${API_BASE}/upload`, formData);
 
       setTaskId(response.data.task_id);
       setStatus("processing");
