@@ -17,7 +17,7 @@ STATIC_FOLDER = os.path.join(BASE_DIR, 'client', 'dist')
 # Check if static folder exists
 if os.path.exists(STATIC_FOLDER):
     print(f"✓ Found static folder at: {STATIC_FOLDER}")
-    app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path="/")
+    app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path="/frontend")
 else:
     print(f"⚠ Static folder not found at: {STATIC_FOLDER}")
     print("  Running in API-only mode")
