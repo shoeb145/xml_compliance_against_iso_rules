@@ -8,6 +8,8 @@ import Results from "./components/Results/Results";
 import Error from "./components/Error/Error";
 import "./App.css";
 import NavBar from "./components/NavBar/NavBar";
+import { Route, Routes } from "react-router";
+import IsoCheckList from "./pages/IsoCheckList/IsoCheckList";
 
 function App() {
   const [file, setFile] = useState(null);
@@ -68,7 +70,7 @@ function App() {
       setStatus("idle");
     }
   };
-  console.log("API URL is", import.meta.env.VITE_API_BASE_URL);
+
   useEffect(() => {
     let intervalId = null;
 
@@ -122,43 +124,51 @@ function App() {
       <div className="orb orb-3"></div>
       <div className="orb orb-4"></div>
 
-      <NavBar />
-
-      <Header />
-
       <main className="app-content">
-        {status === "idle" && (
-          <FileUpload
-            file={file}
-            fileName={fileName}
-            error={error}
-            onFileChange={handleFileChange}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onUpload={uploadFile}
+        <NavBar />
+        <Routes>
+          <Route
+            path="/frontend"
+            element={
+              <>
+                <Header />
+                {status === "idle" && (
+                  <FileUpload
+                    file={file}
+                    fileName={fileName}
+                    error={error}
+                    onFileChange={handleFileChange}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    onUpload={uploadFile}
+                  />
+                )}
+
+                {status === "uploading" && (
+                  <div className="status fade-in">
+                    <div className="processing-spinner"></div>
+                    <p>Uploading configuration file...</p>
+                  </div>
+                )}
+
+                {status === "processing" && (
+                  <ProcessingStatus
+                    progress={progress}
+                    currentRule={currentRule}
+                    message={message}
+                  />
+                )}
+
+                {status === "completed" && results && (
+                  <Results results={results} onReset={reset} />
+                )}
+
+                {status === "error" && <Error error={error} onReset={reset} />}
+              </>
+            }
           />
-        )}
-
-        {status === "uploading" && (
-          <div className="status fade-in">
-            <div className="processing-spinner"></div>
-            <p>Uploading configuration file...</p>
-          </div>
-        )}
-
-        {status === "processing" && (
-          <ProcessingStatus
-            progress={progress}
-            currentRule={currentRule}
-            message={message}
-          />
-        )}
-
-        {status === "completed" && results && (
-          <Results results={results} onReset={reset} />
-        )}
-
-        {status === "error" && <Error error={error} onReset={reset} />}
+          <Route path="/checklist" element={<IsoCheckList />} />
+        </Routes>
       </main>
     </div>
   );
