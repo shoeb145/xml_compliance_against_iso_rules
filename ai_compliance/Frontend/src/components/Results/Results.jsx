@@ -46,11 +46,15 @@ const Results = ({ results, onReset }) => {
 
   useEffect(() => {
     if (!results) return;
-    const Noevidence = results.results.non_compliant.filter((item) =>
-      item.reasoning.includes("No evidence found in XML for this rule.")
+    const Noevidence = results.results.non_compliant.filter(
+      (item) =>
+        typeof item.reasoning === "string" &&
+        item.reasoning.includes("No evidence found in XML for this rule.")
     ).length;
-    const noRelevant = results.results.non_compliant.filter((item) =>
-      item.reasoning.includes("Rule not relevant to XML configuration.")
+    const noRelevant = results.results.non_compliant.filter(
+      (item) =>
+        typeof item.reasoning === "string" &&
+        item.reasoning.includes("Rule not relevant to XML configuration.")
     ).length;
     const compliant = results?.results?.compliant?.length;
     const evidence =
@@ -79,6 +83,8 @@ const Results = ({ results, onReset }) => {
     });
     setSection(tempSections);
   }, [results]);
+  console.log(section);
+  console.log(results);
 
   return (
     <div className="results fade-in">
