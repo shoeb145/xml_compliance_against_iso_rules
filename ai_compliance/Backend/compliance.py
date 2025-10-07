@@ -83,6 +83,60 @@ async def process_rule(rule_text, json_data, rule_index, total_rules, task_id):
         "evidence": snippets[:3]  # Return top 3 most relevant pieces of evidence
     }
 
+async def recheck_rule_with_evidence(rule_data, extracted_text):
+    """
+    Re-evaluate a single rule with manually provided evidence
+    """
+    rule_context = f"{rule_data['control_id']}: {rule_data['control_name']} - {rule_data['control_description']}"
+    
+    messages = [
+        {
+            "role": "system", 
+            "content": """You are a cybersecurity compliance auditor. Re-evaluate ISO control compliance 
+            based on NEW evidence provided by the user. Consider both the original rule requirements 
+            and the new configuration evidence extracted from the screenshot."""
+        },
+        {
+            "role": "user", 
+            "content": f"""ISO Control to Re-evaluate:
+            {rule_context}
+            
+            Previous Assessment: {rule_data['current_status']}
+            Previous Reasoning: {rule_data['current_reasoning']}
+            
+            NEW Evidence from Screenshot (XML Configuration):
+            {extracted_text}
+            
+            Analyze if this new evidence demonstrates compliance with the ISO control.
+            Return JSON with:
+            - compliance_status: 'compliant' or 'non-compliant'
+            - reasoning: Detailed explanation of your assessment
+            - confidence: 'high', 'medium', or 'low' based on evidence quality
+            - key_findings: List of specific configuration elements that support your assessment
+            """
+        }
+    ]
+    
+    try:
+        compliance_json = await ai_json_call(messages)
+        
+        return {
+            "status": compliance_json.get("compliance_status", "non-compliant"),
+            "reasoning": compliance_json.get("reasoning", "No reasoning provided"),
+            "confidence": compliance_json.get("confidence", "low"),
+            "key_findings": compliance_json.get("key_findings", []),
+            "extracted_text": extracted_text
+        }
+    except Exception as e:
+        print(f"Recheck AI error: {e}")
+        return {
+            "status": "error",
+            "reasoning": f"AI analysis failed: {str(e)}",
+            "confidence": "low",
+            "key_findings": [],
+            "extracted_text": extracted_text
+        }
+
 # --- Main async function ---
 async def run_compliance(iso_rules, json_data, task_id):
     start_time = time.time()
