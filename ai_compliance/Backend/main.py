@@ -9,6 +9,12 @@ from compliance import run_compliance
 from tasks_progress import create_task, update_task_progress, finish_task, fail_task, get_task_status
 from threading import Thread
 import asyncio
+import base64
+from io import BytesIO
+from PIL import Image
+from compliance import recheck_rule_with_evidence
+from s3_service import s3_service
+from textract_service import textract_service
 
 # Get the directory where main.py is located
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -182,6 +188,89 @@ else:
                 'results': '/api/results/<task_id> (GET)'
             }
         })
+    
+@app.route('/api/recheck-rule', methods=['POST'])
+def recheck_rule():
+    """
+    Re-evaluate a specific rule with screenshot evidence
+    """
+    try:
+        # Check if image file is provided
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image file provided'}), 400
+        
+        image_file = request.files['image']
+        
+        # Get form data
+        task_id = request.form.get('task_id')
+        control_id = request.form.get('control_id')
+        control_name = request.form.get('control_name')
+        control_description = request.form.get('control_description')
+        current_status = request.form.get('current_status')
+        current_reasoning = request.form.get('current_reasoning')
+        
+        # Validate required fields
+        required_fields = [task_id, control_id, control_name, control_description]
+        if not all(required_fields):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        print(f"🔄 Rechecking rule {control_id} for task {task_id}")
+        
+        # 1. Upload to S3 and extract text
+        image_data = image_file.read()
+        file_extension = image_file.filename.split('.')[-1] if '.' in image_file.filename else 'jpg'
+        
+        # Upload to S3
+        s3_url = s3_service.upload_file(image_data, file_extension)
+        print(f"📁 Image uploaded to S3: {s3_url}")
+        
+        # Extract text from S3 using Textract
+        extracted_text = textract_service.extract_text_from_s3(s3_url)
+        print(f"📄 Extracted {len(extracted_text)} characters")
+        
+        # Prepare rule data for AI analysis
+        rule_data = {
+            'control_id': control_id,
+            'control_name': control_name,
+            'control_description': control_description,
+            'current_status': current_status,
+            'current_reasoning': current_reasoning
+        }
+        
+        # Run AI recheck (async)
+        async def run_recheck():
+            return await recheck_rule_with_evidence(rule_data, extracted_text)
+        
+        # Execute async function
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        recheck_result = loop.run_until_complete(run_recheck())
+        loop.close()
+        
+        # Prepare response
+        response = {
+            "success": True,
+            "updated_rule": {
+                "control_id": control_id,
+                "control_name": control_name,
+                "status": recheck_result["status"].capitalize(),
+                "reasoning": recheck_result["reasoning"],
+                "confidence": recheck_result["confidence"],
+                "key_findings": recheck_result["key_findings"],
+                "extracted_text": extracted_text,
+                "s3_url": s3_url,  # Include S3 URL in response
+                "previous_status": current_status
+            }
+        }
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        print(f"❌ Recheck endpoint error: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Recheck failed: {str(e)}"
+        }), 500
 
 if __name__ == '__main__':
     print("🔥 Optimized Async Compliance Checker Backend Started")
