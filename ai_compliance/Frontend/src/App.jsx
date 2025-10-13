@@ -160,7 +160,12 @@ function App() {
                 )}
 
                 {status === "completed" && results && (
-                  <Results results={results} onReset={reset} />
+                  <Results
+                    results={results}
+                    onReset={reset}
+                    taskId={taskId}
+                    setResults={setResults}
+                  />
                 )}
 
                 {status === "error" && <Error error={error} onReset={reset} />}
