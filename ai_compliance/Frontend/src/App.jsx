@@ -127,6 +127,7 @@ function App() {
       <main className="app-content">
         <NavBar />
         <Routes>
+          <Route path="/" element={<Navigate to="/frontend" />} />
           <Route
             path="/frontend"
             element={
