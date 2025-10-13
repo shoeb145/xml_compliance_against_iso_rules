@@ -1,18 +1,36 @@
 import React, { useState } from "react";
 import AddImage from "../AddImage/AddImage";
 
-function ExpandedSection({ data, priority, truncateWords }) {
+function ExpandedSection({
+  data,
+  priority,
+  truncateWords,
+  taskId,
+  onImageUpload,
+  expandAll,
+}) {
   const [showUploader, setShowUploader] = useState({});
-  const toggleUploader = (idx) => {
-    setShowUploader((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  const [loading, setLoading] = useState({});
+  console.log(data);
+  const toggleUploader = (key) => {
+    setShowUploader((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
   };
-
   return (
-    <div className="border-t border-gray-200 h-96 scroll-smooth scrollContainer  overflow-y-scroll ">
+    <div
+      className={`border-t border-gray-200 scroll-smooth scrollContainer transition-all duration-200 ${
+        expandAll ? "overflow-visible" : "overflow-y-scroll"
+      }`}
+      style={{
+        height: expandAll ? "auto" : "29rem", // h-93 ≈ 23rem
+      }}
+    >
       <div className="p-4 space-y-4">
         {data.controls?.map((control, idx) => (
           <div
-            key={idx}
+            key={control.control_name}
             className=" rounded-md border border-zinc-700 p-4 shadow-sm"
           >
             {/* Control Header */}
@@ -88,6 +106,7 @@ function ExpandedSection({ data, priority, truncateWords }) {
                 </div>
 
                 {/* Control Description */}
+                <div></div>
                 <h4 className="font-medium text-gray-300 mb-2 leading-relaxed">
                   {truncateWords(control.control_description, 120)}
                 </h4>
@@ -162,7 +181,18 @@ function ExpandedSection({ data, priority, truncateWords }) {
               </div>
 
               {/* Right Status Indicator */}
-              <div className="flex-shrink-0 text-right flex flex-col justify-between ">
+              <div
+                className={`flex-shrink-0 text-right flex   justify-between ${
+                  control.check == "manual"
+                    ? "flex-row items-center"
+                    : "flex-col "
+                }`}
+              >
+                {control.check == "manual" ? (
+                  <span className="text-amber-200 text-sm mr-2">Manual</span>
+                ) : (
+                  ""
+                )}
                 {control.status === "Compliant" ? (
                   <span className="text-green-600 font-semibold text-sm">
                     ✓ PASS
@@ -172,20 +202,39 @@ function ExpandedSection({ data, priority, truncateWords }) {
                     ✗ FAIL
                   </span>
                 )}
-
-                {control.status != "Compliant" && (
-                  <div>
-                    <button
-                      className="mt-16 border border-zinc-700 bg-gradient-to-r from-[#19c9c6] via-[#19c9c6] to-[rgb(3,249,179)] text-transparent bg-clip-text p-2 rounded-3xl text-sm font-medium hover:text-slate-900 hover:bg-clip-padding  hover:ease-in-out hover:duration-300 hover:transition-colors"
-                      onClick={() => toggleUploader(idx)}
-                    >
-                      {showUploader[idx] ? "Close Uploader " : "Add Evidence"}
-                    </button>
+                {loading[control.control_name] ? (
+                  <div className="flex items-center gap-2 mt-16">
+                    <span className="loader border-2 border-t-transparent border-[#19c9c6] rounded-full w-4 h-4 animate-spin"></span>
+                    <span className="text-[#19c9c6] text-sm">Uploading...</span>
                   </div>
+                ) : (
+                  !expandAll &&
+                  control.status !== "Compliant" && (
+                    <div>
+                      <button
+                        className="no-print mt-16 border border-zinc-700 bg-gradient-to-r from-[#19c9c6] via-[#19c9c6] to-[rgb(3,249,179)] text-transparent bg-clip-text p-2 rounded-3xl text-sm font-medium hover:text-slate-900 hover:bg-clip-padding  hover:ease-in-out hover:duration-300 hover:transition-colors"
+                        onClick={() => toggleUploader(control.control_name)}
+                      >
+                        {showUploader[control.control_name]
+                          ? "Close Uploader"
+                          : "Add Evidence"}
+                      </button>
+                    </div>
+                  )
                 )}
               </div>
             </div>
-            {showUploader[idx] && <AddImage />}
+            {showUploader[control.control_name] &&
+              control.status != "Compliant" &&
+              !loading[control.control_name] && (
+                <AddImage
+                  data={control}
+                  taskId={taskId}
+                  onImageUpload={onImageUpload}
+                  maindata={data}
+                  setLoading={setLoading}
+                />
+              )}
           </div>
         ))}
       </div>

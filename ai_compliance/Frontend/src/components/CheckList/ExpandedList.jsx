@@ -27,12 +27,12 @@ function ExpandedList({ data, truncateWords }) {
 
                 {/* Control Description */}
                 <h4 className="font-medium text-gray-300 mb-2 leading-relaxed">
-                  {truncateWords(control.Control_Description, 120)}
+                  {truncateWords(control.Control_Name, 100)}
                 </h4>
 
                 {/* Reasoning */}
                 <p className="text-sm text-gray-500 mb-2 leading-relaxed">
-                  {truncateWords(control.Control_Name, 100)}
+                  {truncateWords(control.Control_Description, 120)}
                 </p>
               </div>
             </div>

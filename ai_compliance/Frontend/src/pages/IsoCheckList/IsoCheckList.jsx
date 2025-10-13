@@ -54,7 +54,7 @@ function IsoCheckList(props) {
 
       try {
         const data = await axios.get(URI);
-        console.log(data.data, "got it ");
+
         const result = papa.parse(data.data, {
           header: true,
           skipEmptyLines: true,
@@ -81,7 +81,7 @@ function IsoCheckList(props) {
     };
     fetch();
   }, []);
-  console.log(section);
+
   return (
     <div className="results fade-in w-4/6 mt-11 min-h-screen py-6 overflow-y-auto">
       <h2>Iso CheckList </h2>
