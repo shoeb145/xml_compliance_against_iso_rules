@@ -8,7 +8,7 @@ import Results from "./components/Results/Results";
 import Error from "./components/Error/Error";
 import "./App.css";
 import NavBar from "./components/NavBar/NavBar";
-import { Route, Routes } from "react-router";
+import { Route, Routes, Navigate } from "react-router";
 import IsoCheckList from "./pages/IsoCheckList/IsoCheckList";
 
 function App() {
