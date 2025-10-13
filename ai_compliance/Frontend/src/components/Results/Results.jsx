@@ -185,7 +185,7 @@ const Results = ({ results, onReset, taskId, setResults }) => {
       // Wait a tick to
 
       // Wait a tick to let React render all expanded sections
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const pdf = new jsPDF("p", "px", "a4");
       const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -258,10 +258,25 @@ const Results = ({ results, onReset, taskId, setResults }) => {
   return (
     <>
       {loadingPdf && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <span className=" text-xl bg-gradient-to-r from-[#19c9c6] via-[#19c9c6] to-[rgb(3,249,179)] text-transparent bg-clip-text  ">
-            Generating PDF...
-          </span>
+        <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
+          <div className="bg-slate-800 rounded-2xl p-8 shadow-2xl border border-slate-700 max-w-md w-full mx-4">
+            {/* Spinner */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-slate-600 rounded-full"></div>
+                <div className="w-16 h-16 border-4 border-transparent border-t-cyan-500 border-r-emerald-500 rounded-full animate-spin absolute top-0 left-0"></div>
+              </div>
+            </div>
+
+            {/* Text */}
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 text-transparent bg-clip-text mb-3 text-center">
+              Generating PDF...
+            </h3>
+
+            <p className="text-slate-400 text-center text-sm">
+              Analyzing compliance data and creating your report
+            </p>
+          </div>
         </div>
       )}
 
