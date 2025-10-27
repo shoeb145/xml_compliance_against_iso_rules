@@ -49,6 +49,16 @@
   box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
 }
 
+/* Add to your Results.css or create a new CSS file */
+.recharts-wrapper,
+.recharts-responsive-container {
+  background-color: white !important;
+}
+
+.recharts-surface {
+  background-color: white;
+}
+
 @media (min-width: 1200px) {
   .results-tables {
     grid-template-columns: 1fr 1fr;
